@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348024539249",
+    "project_id": "pyeonyook-af417",
+    "storage_bucket": "pyeonyook-af417.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348024539249:android:52be1b33001d3d66fcf3d0",
+        "android_client_info": {
+          "package_name": "com.syu.os.pyeonyukapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaTz71kZ5hCdgPk9ia-JJ3THum5wdOu7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
