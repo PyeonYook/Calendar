@@ -1,32 +1,70 @@
 package com.syu.os.pyeonyukapp.data
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.syu.os.pyeonyukapp.ui.Event
+import com.syu.os.pyeonyukapp.model.Event
 import kotlinx.coroutines.tasks.await
 
 class FirestoreService {
+    private val firestore = FirebaseFirestore.getInstance()
 
-    private val db = FirebaseFirestore.getInstance()
-    private val eventCollection = db.collection("events")
-
-    // 🔸 일정 저장
-    suspend fun addEvent(event: Event) {
-        eventCollection.add(event).await()
-    }
-
-    // 🔸 날짜별 일정 가져오기
-    suspend fun getEventsByDate(date: String): List<Event> {
-        val snapshot = eventCollection
-            .whereEqualTo("date", date)
-            .get()
-            .await()
-
-        return snapshot.toObjects(Event::class.java)
-    }
-
-    // 🔸 전체 일정 가져오기 (예시)
     suspend fun getAllEvents(): List<Event> {
-        val snapshot = eventCollection.get().await()
-        return snapshot.toObjects(Event::class.java)
+        return try {
+            val snapshot = firestore.collection("events").get().await()
+            snapshot.documents.mapNotNull { doc ->
+                try {
+                    doc.toObject(Event::class.java)?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun observeEvents(onEventsChanged: (List<Event>) -> Unit) {
+        firestore.collection("events")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    onEventsChanged(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val events = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Event::class.java)?.copy(id = doc.id)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                onEventsChanged(events)
+            }
+    }
+
+    suspend fun addEvent(event: Event) {
+        try {
+            firestore.collection("events")
+                .add(event.toMap()).await()
+        } catch (_: Exception) {
+        }
+    }
+
+    suspend fun updateEvent(event: Event) {
+        try {
+            firestore.collection("events")
+                .document(event.id)
+                .set(event.toMap()).await()
+        } catch (_: Exception) {
+        }
+    }
+
+    suspend fun deleteEvent(eventId: String) {
+        try {
+            firestore.collection("events")
+                .document(eventId)
+                .delete().await()
+        } catch (_: Exception) {
+        }
     }
 }

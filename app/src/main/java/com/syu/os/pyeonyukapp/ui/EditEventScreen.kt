@@ -3,7 +3,6 @@ package com.syu.os.pyeonyukapp.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,33 +15,55 @@ import androidx.compose.ui.unit.sp
 import com.syu.os.pyeonyukapp.data.LocalDateTimeConverter
 import com.syu.os.pyeonyukapp.model.Event
 import com.syu.os.pyeonyukapp.viewmodel.EventViewModel
-import com.syu.os.pyeonyukapp.ui.common.TimeRangeRow
 import com.syu.os.pyeonyukapp.ui.common.InputRow
-import java.time.*
+import com.syu.os.pyeonyukapp.ui.common.TimeRangeRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEventScreen(
-    selectedDate: LocalDate,
+fun EditEventScreen(
+    event: Event,
     viewModel: EventViewModel,
     onSave: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var startDateTime by remember { mutableStateOf(LocalDateTime.of(selectedDate, LocalTime.of(9, 0))) }
-    var endDateTime by remember { mutableStateOf(LocalDateTime.of(selectedDate, LocalTime.of(10, 0))) }
-    var category by remember { mutableStateOf("약속") }
-    var reminder by remember { mutableStateOf("30분 전") }
-    var repeatType by remember { mutableStateOf("없음") }
-    var location by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
-    var memo by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(event.title) }
+    var startDateTime by remember { mutableStateOf(event.startDateTime) }
+    var endDateTime by remember { mutableStateOf(event.endDateTime) }
+    var category by remember { mutableStateOf(event.category) }
+    var reminder by remember { mutableStateOf(event.reminder) }
+    var repeatType by remember { mutableStateOf(event.repeatType) }
+    var location by remember { mutableStateOf(event.location) }
+    var url by remember { mutableStateOf(event.url) }
+    var memo by remember { mutableStateOf(event.memo) }
+
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "메뉴")
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("삭제") },
+                            onClick = {
+                                viewModel.deleteEvent(event)
+                                onSave()
+                            }
+                        )
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    val event = Event(
-                        id = "",
+                    val updated = event.copy(
                         title = title,
                         startDateTimeTimestamp = LocalDateTimeConverter.toTimestamp(startDateTime),
                         endDateTimeTimestamp = LocalDateTimeConverter.toTimestamp(endDateTime),
@@ -51,10 +72,9 @@ fun AddEventScreen(
                         repeatType = repeatType,
                         location = location,
                         url = url,
-                        memo = memo,
-                        color = "#2196F3"
+                        memo = memo
                     )
-                    viewModel.addEvent(event)
+                    viewModel.updateEvent(updated)
                     onSave()
                 },
                 containerColor = Color.Black
